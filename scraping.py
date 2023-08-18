@@ -6,8 +6,8 @@ import re
 url_name = ["outside", "drink", "inside", "menu", "food", "interior"]
 
 tab_urls = {
-    names: f"https://www.yelp.com/biz_photos/benemon-new-york?tab={names}"
-    for names in url_name
+    name: f"https://www.yelp.com/biz_photos/benemon-new-york?tab={name}"
+    for name in url_name
 }
 
 def scrape_yelp_image(names):
@@ -21,12 +21,12 @@ def scrape_yelp_image(names):
     doc = BeautifulSoup(response.text, "html.parser")
 
     image_links = []
-    image_elements = doc.find_all("img", class_="photo-box-img") 
+    image_elements = doc.select(".photo-box-img[width='226']")
     # since the photo is inside the div inside img inside srcset
     for img in image_elements:
         srcset = img.get("srcset")
         if srcset:
-            urls = re.findall(r"https?://[^\s]+", srcset)
+            urls = re.findall(r"(https?://[^\s]+)\s+1\.35x", srcset)
             image_links.extend([(names, url) for url in urls])  # Pairing the tab name with each URL to get the desired output 
     
     return image_links
