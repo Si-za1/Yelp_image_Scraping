@@ -21,15 +21,24 @@ def scrape_yelp_image(names):
     doc = BeautifulSoup(response.text, "html.parser")
 
     image_links = []
-    image_elements = doc.select(".photo-box-img[width='226']")
-    # since the photo is inside the div inside img inside srcset
-    for img in image_elements:
-        srcset = img.get("srcset")
-        if srcset:
+    # Find the container for photo elements using CSS selector
+    photo_container = doc.select("div.media-landing_gallery.photos")
+
+    if photo_container:
+        # Use .find_all() on the photo_container to get all photo-box elements
+        image_elements = photo_container[0].find_all("div", class_="photo-box photo-box--interactive")
+
+        for img in image_elements:
+            # Use .select() to directly find the .photo-box-img element with the specific attribute
+            srcset = img.select_one(".photo-box-img[width='226']")["srcset"]
             urls = re.findall(r"(https?://[^\s]+)\s+1\.35x", srcset)
-            image_links.extend([(names, url) for url in urls])  # Pairing the tab name with each URL to get the desired output 
-    
-    return image_links
+            image_links.extend([(names, url) for url in urls])
+
+        print(image_links)
+        return image_links
+    else:
+        print("No image elements found for", names)
+        return []
 
 if __name__ == '__main__':
     scraped_data = []
